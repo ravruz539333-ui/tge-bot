@@ -123,6 +123,8 @@ MAJBUR_LIMIT = 0
 FOYDALANUVCHI_HISOBI = defaultdict(int)
 RUXSAT_USER_IDS = set()
 BLOK_VAQTLARI = {}  # (chat_id, user_id) -> until_datetime (UTC)
+MAJBUR_WARN_MSG_IDS = {}  # (chat_id, user_id) -> last warning message_id
+KANAL_WARN_MSG_IDS = {}   # (chat_id, user_id) -> last warning message_id
 
 # ✅ To'liq yozish ruxsatlari (guruh sozlamalari ruxsat bergan taqdirda)
 FULL_PERMS = ChatPermissions(
@@ -155,27 +157,364 @@ BLOCK_PERMS = ChatPermissions(
 )
 
 # So'kinish lug'ati (qisqartirilgan, aslidagi ro'yxat saqlandi)
-UYATLI_SOZLAR = {"am", "ammisan", "ammislar", "ammislar?", "ammisizlar", "ammisizlar?", "amsan", "ammisan?", "amlar", "amlatta", "amyalaq", "amyalar", "amyaloq", "amxor", "am yaliman", "am yalayman", "am latta", "aminga",
-"aminga ske", "aminga sikay", "buyingdi ami", "buyingdi omi", "buyingni ami", "buyindi omi", "buynami", "biyindi ami", "blya", "biyundiami", "blyat", "buynami", "buyingdi omi", "buyingni ami",
-"buyundiomi", "dalbayob", "dalbayobmisan", "dalbayoblar", "dalbayobmisan?", "debil", "dolboyob", "durak", "fuck", "fakyou", "fuckyou", "foxisha", "foxishasan", "foxishamisan?", "foxishalar", "fohisha", "fohishasan", "fohishamisan?",
-"fohishalar", "gandon", "g'ar", "gandonmisan", "gandonmisan?", "gandonlar", "haromi", "huy", "haromilar", "horomi", "horomilar", "idinnaxxuy", "idinaxxuy", "idin naxuy", "idin naxxuy", "isqirt", "isqirtsan", "isqirtlar", "jalap", "jalaplar",
-"jalapsan", "jalapkot", "jalapkoz", "kot", "kotmislar", "kotmislar?", "kotmisizlar", "kutagim", "kotmisizlar?", "kotlar", "kotak", "kotmisan", "kotmisan?", "kotsan", "ko'tsan", "ko'tmisan", "ko't", "ko'tlar", "kotinga ske", "kotinga sikay", "kotingaske", "kotagim", "kotinga", "ko'tinga",
-"kotingga", "kotvacha", "ko'tak", "lanati", "lanat", "lanatilar", "lanatisan", "mudak", "naxxuy", "og'zingaskay", "og'zinga skey", "ogzinga skey", "og'zinga skay", "ogzingaskay", "otti qotagi", "otni qotagi", "horomilar",
-"huyimga", "huygami", "otti qo'tag'i", "ogzinga skay", "onagniomi", "onagni omi", "onangniami", "onagni ami", "pashol naxuy", "pasholnaxuy", "padarlanat", "padarlanatlar", "padarlanatsan", "pasholnaxxuy", "pidor",
-"poshol naxxuy", "posholnaxxuy", "poxxuy", "poxuy", "qanjik", "qanjiq", "qanjiqsan", "qanjiqlar", "qonjiq", "qotaq", "qotaqlar", "qotaqsan", "qotaqmisan", "qotaqxor", "qo'taq", "qo'taqxo'r", "chochoq", "chochaq",
-"qotagim", "qo'tag'im", "qotoqlar", "qo'toqlar", "qotag'im", "qotoglar", "qo'tog'lar", "qotagim", "skiy", "skay", "sikey", "sik", "skaman", "sikaman", "skasizmi", "sikasizmi", "sikay", "sikalak", "skishaman", "skishamiz",
-"skishamizmi?", "sikishaman", "sikishamiz", "skey" "sikish", "sikishish", "skay", "soska", "suka", "sukalar", "tashak", "tashaklar", "tashaq", "tashaqlar", "toshoq", "toshoqlar", "toshok", "xuy", "xuramilar", "xuy",
-"xuyna", "xaromi", "xoramilar", "xoromi", "xoromilar", "g'ar", "ам", "аммисан", "аммислар", "аммислар?", "аммисизлар", "аммисизлар?", "амсан", "аммисан?", "амлар", "амлатта", "амялақ", "амялар", "амялоқ", "амхор", "ам ялиман", "ам ялайман", "ам латта", "аминга",
-"аминга ске", "аминга сикай", "буйингди ами", "буйингди оми", "буйингни ами", "буйинди оми", "буйнами", "бийинди ами", "бля", "биюндиами", "блят", "буйнами", "буйингди оми", "буйингни ами",
-"буюндиоми", "далбаёб", "далбаёбмисан", "далбаёблар", "далбаёбмисан?", "дебил", "долбоёб", "дурак", "фуcк", "факёу", "фуcкёу", "фохиша", "фохишасан", "фохишамисан?", "фохишалар", "фоҳиша", "фоҳишасан", "фоҳишамисан?",
-"фоҳишалар", "гандон", "гандонмисан", "гандонмисан?", "гандонлар", "ҳароми", "ҳуй", "ҳаромилар", "ҳороми", "ҳоромилар", "идиннаххуй", "идинаххуй", "идин нахуй", "идин наххуй", "исқирт", "исқиртсан", "исқиртлар", "жалап", "жалаплар",
-"жалапсан", "жалапкот", "жалапкоз", "кот", "котмислар", "котмислар?", "котмисизлар", "кутагим", "котмисизлар?", "котлар", "котак", "котмисан", "котмисан?", "котсан", "кўтсан", "кўтмисан", "кўт", "кўтлар", "котинга ске", "котинга сикай", "котингаске", "котагим", "котинга", "кўтинга",
-"котингга", "котвача", "кўтак", "ланати", "ланат", "ланатилар", "ланатисан", "мудак", "наххуй", "оғзингаскай", "оғзинга скей", "огзинга скей", "оғзинга скай", "огзингаскай", "отти қотаги", "отни қотаги", "ҳоромилар",
-"ҳуйимга", "ҳуйгами", "отти қўтағи", "огзинга скай", "онагниоми", "онагни оми", "онангниами", "онагни ами", "пашол нахуй", "пашолнахуй", "падарланат", "падарланатлар", "падарланатсан", "пашолнаххуй", "пидор", "пошол наххуй",
-"пошолнаххуй", "поххуй", "похуй", "қанжик", "қанжиқ", "қанжиқсан", "қанжиқлар", "қонжиқ", "қотақ", "қотақлар", "қотақсан", "қотақмисан", "қотақхор", "қўтақ", "қўтақхўр", "чочоқ", "чочақ",
-"қотагим", "қўтағим", "қотоқлар", "қўтоқлар", "қотағим", "қотоглар", "қўтоғлар", "қотагим", "ский", "скай", "сикей", "сик", "скаман", "сикаман", "скасизми", "сикасизми", "сикай", "сикалак", "скишаман", "скишамиз",
-"скишамизми?", "сикишаман", "сикишамиз", "скей" "сикиш", "сикишиш", "скай", "соска", "сука", "сукалар", "ташак", "ташаклар", "ташақ", "ташақлар", "тошоқ", "тошоқлар", "тошок", "хуй", "хурамилар", "хуй",
-"хуйна", "хароми", "хорамилар", "хороми", "хоромилар", "ғар"}
+UYATLI_SOZLAR = {
+    # --- LOTIN (alfavit) ---
+    "am",
+    "am latta",
+    "am yalayman",
+    "am yaliman",
+    "aminga",
+    "aminga sikay",
+    "aminga ske",
+    "amlar",
+    "amlatta",
+    "ammisan",
+    "ammisan?",
+    "ammisizlar",
+    "ammisizlar?",
+    "ammislar",
+    "ammislar?",
+    "amsan",
+    "amxo'r",
+    "amyalaq",
+    "amyalar",
+    "amyaloq",
+    "buyindi ami",
+    "buyundiami",
+    "buyindi omi",
+    "buyingdi ami",
+    "buyingdi omi",
+    "buyingni ami",
+    "buynami",
+    "buyundiomi",
+    "chochaq",
+    "chochoq",
+    "dalbayob",
+    "dalbayoblar",
+    "dalbayobmisan",
+    "dalbayobmisan?",
+    "debil",
+    "dolboyob",
+    "fakyou",
+    "fohisha",
+    "fohishalar",
+    "fohishamisan?",
+    "fohishasan",
+    "foxisha",
+    "foxishalar",
+    "foxishamisan?",
+    "foxishasan",
+    "fuck",
+    "fuckyou",
+    "g'ar",
+    "gandon",
+    "gandonlar",
+    "gandonmisan",
+    "gandonmisan?",
+    "haromi",
+    "haromilar",
+    "horomi",
+    "horomilar",
+    "huy",
+    "huygami",
+    "huyimga",
+    "idin naxuy",
+    "idin naxxuy",
+    "idinaxxuy",
+    "idinnaxxuy",
+    "isqirtsan",
+    "jalap",
+    "jalapmisan",
+    "jalapmisan?",
+    "jalapkot",
+    "jalapkoz",
+    "jalaplar",
+    "jalapsan",
+    "ko't",
+    "ko'tak",
+    "ko'tinga",
+    "ko'tlar",
+    "ko'tmisan",
+    "ko'tsan",
+    "kot",
+    "kote",
+    "ko'te",
+    "kotanak",
+    "kotinga",
+    "kotinga sikay",
+    "kotinga ske",
+    "kotingaske",
+    "kotingga",
+    "kotlar",
+    "kotmisan",
+    "kotmisan?",
+    "kotmisizlar",
+    "kotmisizlar?",
+    "kotmislar",
+    "kotmislar?",
+    "kotsan",
+    "kotvacha",
+    "ko'tvacha",
+    "ko'tvachcha",
+    "naxxuy",
+    "naxuy",
+    "og'zinga skay",
+    "og'zinga skey",
+    "og'zingaskay",
+    "ogzinga skay",
+    "ogzinga skey",
+    "ogzingaskay",
+    "onangni ami",
+    "onangni omi",
+    "onangniomi",
+    "onangniami",
+    "otni qotagi",
+    "otni qo'tag'i",
+    "otni qotag'i",
+    "otti qo'tag'i",
+    "otti qotagi",
+    "padarlanat",
+    "padarlanatlar",
+    "padarlanatsan",
+    "pashol naxuy",
+    "pasholnaxuy",
+    "pasholnaxxuy",
+    "poshol naxxuy",
+    "posholnaxxuy",
+    "poxuy",
+    "poxxuy",
+    "qanjik",
+    "qanjiq",
+    "qanjiqlar",
+    "qanjiqsan",
+    "qanjiqmisan",
+    "qanjiqmisan?",
+    "qo'tag'im",
+    "qo'taq",
+    "qo'taqxo'r",
+    "qo'tog'lar",
+    "qo'toqlar",
+    "qotag'im",
+    "qotagim",
+    "qotaq",
+    "qotaqlar",
+    "qotaqmisan",
+    "qotaqsan",
+    "qotaqxor",
+    "qotoglar",
+    "qotoqlar",
+    "sik",
+    "sikaman",
+    "sikasizmi",
+    "sikay",
+    "sikey",
+    "sikish",
+    "sikishaman",
+    "sikishamiz",
+    "sikishish",
+    "skaman",
+    "skasizmi",
+    "skay",
+    "skey",
+    "skishaman",
+    "skishamiz",
+    "skishamizmi?",
+    "skiy",
+    "soska",
+    "suka",
+    "sukalar",
+    "tashak",
+    "tashaklar",
+    "tashaq",
+    "tashaqlar",
+    "toshok",
+    "toshoq",
+    "toshoqlar",
+    "xaromi",
+    "xoramilar",
+    "xoromi",
+    "xoromilar",
+    "xuramilar",
+    "xuy",
+    "xuyna",
+    # --- КРИЛЛ (алфавит) ---
+    "ам",
+    "ам латта",
+    "ам ялайман",
+    "ам ялиман",
+    "аминга",
+    "аминга сикай",
+    "аминга ске",
+    "амлар",
+    "амлатта",
+    "аммисан",
+    "аммисан?",
+    "аммисизлар",
+    "аммисизлар?",
+    "аммислар",
+    "аммислар?",
+    "амсан",
+    "амхор",
+    "амялар",
+    "амялақ",
+    "амялоқ",
+    "буйинди ами",
+    "буйиндиами",
+    "буйингди ами",
+    "буйингди оми",
+    "буйингни ами",
+    "буйинди оми",
+    "буйнами",
+    "буюнгдиоми",
+    "гандон",
+    "гандонлар",
+    "гандонмисан",
+    "гандонмисан?",
+    "далбаёб",
+    "далбаёблар",
+    "далбаёбмисан",
+    "далбаёбмисан?",
+    "долбоёб",
+    "жалап",
+    "жалапкоз",
+    "жалапкот",
+    "жалаплар",
+    "жалапсан",
+    "идин нахуй",
+    "идин наххуй",
+    "идинаххуй",
+    "идиннаххуй",
+    "котвача",
+    "котинга",
+    "котинга сикай",
+    "котинга ске",
+    "котингаске",
+    "котингга",
+    "котлар",
+    "котмисан",
+    "котмисан?",
+    "котмисизлар",
+    "котмисизлар?",
+    "котмислар",
+    "котмислар?",
+    "котсан",
+    "кутагим",
+    "кўт",
+    "кўтак",
+    "кўтинга",
+    "кўтлар",
+    "кўтмисан",
+    "кўтмисизлар",
+    "кўтмисизлар?",
+    "кўтсан",
+    "ланатисан",,
+    "наххуй",
+    "огзинга скай",
+    "огзинга скей",
+    "огзингаскай",
+    "онагни ами",
+    "онагни оми",
+    "онагниоми",
+    "онангниами",
+    "отни қотаги",
+    "отти қотаги",
+    "отти қўтағи",
+    "отти қотағи",
+    "отти котаги",
+    "оғзинга скай",
+    "оғзинга скей",
+    "оғзингаскай",
+    "огзинга скай",
+    "огзинга скей",
+    "огзингаскай",
+    "падарланат",
+    "падарланатлар",
+    "падарланатсан",
+    "пашол нахуй",
+    "пашолнахуй",
+    "пашолнаххуй",
+    "похуй",
+    "поххуй",
+    "пошол наххуй",
+    "пошолнаххуй",
+    "сик",
+    "сикай",
+    "сикалак",
+    "сикаман",
+    "сикасизми",
+    "сикей",
+    "сикишаман",
+    "сикишамиз",
+    "сикишиш",
+    "скай",
+    "скаман",
+    "скасизми",
+    "скейсикиш",
+    "ский",
+    "скишаман",
+    "скишамиз",
+    "скишамизми?",
+    "соска",
+    "сука",
+    "сукалар",
+    "ташак",
+    "ташаклар",
+    "ташақ",
+    "ташақлар",
+    "тошок",
+    "тошоқ",
+    "тошоқлар",
+    "факёу",
+    "фохиша",
+    "фохишалар",
+    "фохишамисан?",
+    "фохишасан",
+    "фоҳиша",
+    "фоҳишалар",
+    "фоҳишамисан?",
+    "фоҳишасан",
+    "хароми",
+    "хорамилар",
+    "хороми",
+    "хоромилар",
+    "хуй",
+    "хуйна",
+    "чочақ",
+    "чочоқ",
+    "чочак",
+    "чочок",
+    "чучақ",
+    "чучоқ",
+    "ғар",
+    "ғарлар",
+    "ғармисан?",
+    "қанжик",
+    "қанжиқ",
+    "қанжиқлар",
+    "қанжиқсан",
+    "қонжиқ",
+    "қотагим",
+    "қотағим",
+    "қотақ",
+    "қотақлар",
+    "қотақмисан",
+    "қотақсан",
+    "қотақхор",
+    "қотоглар",
+    "қотоқлар",
+    "қўтағим",
+    "қўтақ",
+    "қўтақхўр",
+    "қўтоғлар",
+    "қўтоқлар",
+    "ҳароми",
+    "ҳаромилар",
+    "ҳороми",
+    "ҳоромилар",
+    "ҳуй",
+    "ҳуйгами",
+    "ҳуйимга",
+}
 
 # Game/inline reklama kalit so'zlar/domenlar
 SUSPECT_KEYWORDS = {"open game", "play", "играть", "открыть игру", "game", "cattea", "gamee", "hamster", "notcoin", "tap to earn", "earn", "clicker"}
@@ -1376,7 +1715,7 @@ async def top_group_counts_db(chat_id: int, limit: int = 100):
 
 async def get_block_until_db(chat_id: int, user_id: int):
     if not DB_POOL:
-        return None
+        return BLOK_VAQTLARI.get((chat_id, user_id))
     try:
         async with DB_POOL.acquire() as con:
             row = await con.fetchrow(
@@ -1391,6 +1730,7 @@ async def get_block_until_db(chat_id: int, user_id: int):
 
 async def set_block_until_db(chat_id: int, user_id: int, until_dt):
     if not DB_POOL:
+        BLOK_VAQTLARI[(chat_id, user_id)] = until_dt
         return
     try:
         async with DB_POOL.acquire() as con:
@@ -1409,6 +1749,7 @@ async def set_block_until_db(chat_id: int, user_id: int, until_dt):
 
 async def clear_block_db(chat_id: int, user_id: int):
     if not DB_POOL:
+        BLOK_VAQTLARI.pop((chat_id, user_id), None)
         return
     try:
         async with DB_POOL.acquire() as con:
@@ -1725,6 +2066,10 @@ async def kanal_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.restrict_chat_member(chat_id=chat_id, user_id=user_id, permissions=FULL_PERMS)
         except Exception:
             pass
+        try:
+            await clear_block_db(chat_id, user_id)
+        except Exception:
+            pass
         return await q.edit_message_text("✅ Majburiy kanal talabi o‘chirilgan. Endi guruhda yozishingiz mumkin.")
 
     ok_all, _missing = await _check_all_channels(user_id, context.bot, kanal_list)
@@ -1734,6 +2079,10 @@ async def kanal_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await q.answer()
     try:
         await context.bot.restrict_chat_member(chat_id=chat_id, user_id=user_id, permissions=FULL_PERMS)
+    except Exception:
+        pass
+    try:
+        await clear_block_db(chat_id, user_id)
     except Exception:
         pass
     return await q.edit_message_text("✅ A’zo bo‘lganingiz tasdiqlandi. Endi guruhda yozishingiz mumkin.")
@@ -1843,26 +2192,64 @@ async def reklama_va_soz_filtri(update: Update, context: ContextTypes.DEFAULT_TY
     kanal_raw = settings.get("kanal_username")
     kanal_list = _parse_kanal_usernames(kanal_raw)
 
+    # Cooldown: foydalanuvchi 1 daqiqalik blokda bo'lsa — xabarini o'chirib, ogohlantirmaymiz
+    uid = msg.from_user.id
+    now = datetime.now(timezone.utc)
+    until_old = await get_block_until_db(chat_id, uid)
+    if until_old and now < until_old:
+        try:
+            await msg.delete()
+        except Exception:
+            pass
+        return
+    if until_old and now >= until_old:
+        await clear_block_db(chat_id, uid)
+
     # Kanal a'zoligi (shu guruh uchun) - ko'p kanalli
     if kanal_list:
-        ok_all, _missing = await _check_all_channels(msg.from_user.id, context.bot, kanal_list)
+        ok_all, _missing = await _check_all_channels(uid, context.bot, kanal_list)
         if not ok_all:
             try:
                 await msg.delete()
             except Exception:
                 pass
+
+            # 1 daqiqaga blok (shu guruh uchun)
+            until = datetime.now(timezone.utc) + timedelta(minutes=1)
+            await set_block_until_db(chat_id, uid, until)
+            try:
+                await context.bot.restrict_chat_member(
+                    chat_id=chat_id,
+                    user_id=uid,
+                    permissions=BLOCK_PERMS,
+                    until_date=until
+                )
+            except Exception as e:
+                log.warning(f"Restrict failed: {e}")
+
             kb = [
-                [InlineKeyboardButton("✅ Men a’zo bo‘ldim", callback_data=f"kanal_azo:{msg.from_user.id}")],
+                [InlineKeyboardButton("✅ Men a’zo bo‘ldim", callback_data=f"kanal_azo:{uid}")],
                 [InlineKeyboardButton("➕ Guruhga qo‘shish", url=admin_add_link(context.bot.username))]
             ]
             user_label = ("@" + msg.from_user.username) if getattr(msg.from_user, "username", None) else (msg.from_user.first_name or "Foydalanuvchi")
             chan_lines = "\n".join([f"{i}) {ch}" for i, ch in enumerate(kanal_list, start=1)])
             warn_text = f"⚠️ {user_label} guruhda yozish uchun shu kanallarga a'zo bo'ling:\n{chan_lines}"
-            await context.bot.send_message(
+
+            # Oldingi ogohlantirishni o'chirish (shu foydalanuvchi uchun)
+            key = (chat_id, uid)
+            prev_mid = KANAL_WARN_MSG_IDS.get(key)
+            if prev_mid:
+                try:
+                    await context.bot.delete_message(chat_id=chat_id, message_id=prev_mid)
+                except Exception:
+                    pass
+
+            warn_msg = await context.bot.send_message(
                 chat_id=chat_id,
                 text=warn_text,
                 reply_markup=InlineKeyboardMarkup(kb),
             )
+            KANAL_WARN_MSG_IDS[key] = warn_msg.message_id
             return
 
     # Quyidagi qism — eski logikangiz (reklama/ssilka/uyatli sozlar) o'zgarishsiz:
@@ -2033,11 +2420,21 @@ async def majbur_filter(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("➕ Guruhga qo‘shish", url=admin_add_link(context.bot.username))],
         [InlineKeyboardButton("⏳ 1 daqiqaga bloklandi", callback_data="noop")]
     ]
-    await context.bot.send_message(
+    # Oldingi ogohlantirishni o'chirish (shu foydalanuvchi uchun)
+    key = (chat_id, uid)
+    prev_mid = MAJBUR_WARN_MSG_IDS.get(key)
+    if prev_mid:
+        try:
+            await context.bot.delete_message(chat_id=chat_id, message_id=prev_mid)
+        except Exception:
+            pass
+
+    warn_msg = await context.bot.send_message(
         chat_id=chat_id,
         text=f"⚠️ Guruhda yozish uchun {limit} ta odam qo‘shishingiz kerak! Qolgan: {qoldi} ta.",
         reply_markup=InlineKeyboardMarkup(kb)
     )
+    MAJBUR_WARN_MSG_IDS[key] = warn_msg.message_id
 
 # --------- Override join handler: per-group count ----------
 async def on_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2066,6 +2463,14 @@ async def on_left_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
 # --------- Override post_init to also init group tables ----------
+async def noop_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Inline 'noop' tugmasi uchun: callback query loading'ni darhol yopadi."""
+    try:
+        if update.callback_query:
+            await update.callback_query.answer()
+    except Exception:
+        pass
+
 async def post_init(app):
     await init_db(app)
     await init_group_db()
@@ -2140,7 +2545,7 @@ def main():
     app.add_handler(CallbackQueryHandler(kanal_callback, pattern=r"^kanal_azo(?::\d+)?$"))
     app.add_handler(CallbackQueryHandler(on_check_added, pattern=r"^check_added(?::\d+)?$"))
     app.add_handler(CallbackQueryHandler(on_grant_priv, pattern=r"^grant:"))
-    app.add_handler(CallbackQueryHandler(lambda u,c: u.callback_query.answer(""), pattern=r"^noop$"))
+    app.add_handler(CallbackQueryHandler(noop_cb, pattern=r"^noop$"))
 
     # Events & Filters
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, on_new_members))
@@ -2158,3 +2563,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
