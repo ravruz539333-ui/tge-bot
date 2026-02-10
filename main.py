@@ -115,7 +115,24 @@ log = logging.getLogger(__name__)
 TOKEN = os.getenv("TOKEN")
 if not TOKEN:
     raise RuntimeError("TOKEN env o'rnatilmagan. Railway Variables ga TOKEN=... qo'ying.")
-WHITELIST = {165553982, "Yunus1995"}
+def _parse_admin_ids(raw: str) -> set[int]:
+    ids: set[int] = set()
+    for part in re.split(r"[,\s]+", (raw or "").strip()):
+        if not part:
+            continue
+        try:
+            ids.add(int(part))
+        except Exception:
+            pass
+    return ids
+
+# Bot egasi (broadcast) ID'lari: Railway Variables -> ADMIN_IDS=12345,67890
+OWNER_IDS = _parse_admin_ids(os.getenv("ADMIN_IDS", ""))
+if not OWNER_IDS:
+    log.warning("ADMIN_IDS env bo‘sh. Railway Variables ga ADMIN_IDS=12345678 (yoki vergul bilan bir nechta) qo‘ying.")
+
+# Filterlarda teginilmaydiganlar (owner ID'lari ham avtomatik kiradi)
+WHITELIST = set(OWNER_IDS) | {"0"}
 TUN_REJIMI = False
 KANAL_USERNAME = None
 
@@ -158,7 +175,7 @@ BLOCK_PERMS = ChatPermissions(
 
 # So'kinish lug'ati (qisqartirilgan, aslidagi ro'yxat saqlandi)
 UYATLI_SOZLAR = {
-    # --- LOTIN (alfavit) ---
+    # --- Latin (alfavit) ---
     "am",
     "am latta",
     "am yalayman",
@@ -175,7 +192,7 @@ UYATLI_SOZLAR = {
     "ammislar",
     "ammislar?",
     "amsan",
-    "amxo'r",
+    "amxor",
     "amyalaq",
     "amyalar",
     "amyaloq",
@@ -193,7 +210,6 @@ UYATLI_SOZLAR = {
     "dalbayoblar",
     "dalbayobmisan",
     "dalbayobmisan?",
-    "debil",
     "dolboyob",
     "fakyou",
     "fohisha",
@@ -207,6 +223,9 @@ UYATLI_SOZLAR = {
     "fuck",
     "fuckyou",
     "g'ar",
+    "g'arlar",
+    "g'arsan",
+    "g'armisan?",
     "gandon",
     "gandonlar",
     "gandonmisan",
@@ -224,22 +243,19 @@ UYATLI_SOZLAR = {
     "idinnaxxuy",
     "isqirtsan",
     "jalap",
-    "jalapmisan",
-    "jalapmisan?",
     "jalapkot",
     "jalapkoz",
     "jalaplar",
     "jalapsan",
     "ko't",
-    "ko'tak",
+    "ko'tanak",
     "ko'tinga",
     "ko'tlar",
     "ko'tmisan",
+    "ko'tmisan?",
     "ko'tsan",
     "kot",
-    "kote",
-    "ko'te",
-    "kotanak",
+    "kotak",
     "kotinga",
     "kotinga sikay",
     "kotinga ske",
@@ -254,23 +270,24 @@ UYATLI_SOZLAR = {
     "kotmislar?",
     "kotsan",
     "kotvacha",
-    "ko'tvacha",
-    "ko'tvachcha",
+    "lanat",
+    "lanati",
+    "lanatilar",
+    "lanatisan",
     "naxxuy",
-    "naxuy",
     "og'zinga skay",
     "og'zinga skey",
     "og'zingaskay",
     "ogzinga skay",
     "ogzinga skey",
     "ogzingaskay",
-    "onangni ami",
-    "onangni omi",
-    "onangniomi",
+    "onagni ami",
+    "onagni omi",
+    "onagniomi",
     "onangniami",
     "otni qotagi",
     "otni qo'tag'i",
-    "otni qotag'i",
+    "otni qo'tagi",
     "otti qo'tag'i",
     "otti qotagi",
     "padarlanat",
@@ -288,12 +305,12 @@ UYATLI_SOZLAR = {
     "qanjiqlar",
     "qanjiqsan",
     "qanjiqmisan",
-    "qanjiqmisan?",
     "qo'tag'im",
     "qo'taq",
     "qo'taqxo'r",
     "qo'tog'lar",
     "qo'toqlar",
+    "qonjiq",
     "qotag'im",
     "qotagim",
     "qotaq",
@@ -304,6 +321,7 @@ UYATLI_SOZLAR = {
     "qotoglar",
     "qotoqlar",
     "sik",
+    "sikaylar",
     "sikaman",
     "sikasizmi",
     "sikay",
@@ -330,14 +348,17 @@ UYATLI_SOZLAR = {
     "toshok",
     "toshoq",
     "toshoqlar",
+    "toshoqimga",
+    "toshog'imga",
+    "toshogimga",
     "xaromi",
     "xoramilar",
     "xoromi",
     "xoromilar",
-    "xuramilar",
     "xuy",
     "xuyna",
-    # --- КРИЛЛ (алфавит) ---
+
+    # --- Krill (alfavit) ---
     "ам",
     "ам латта",
     "ам ялайман",
@@ -365,7 +386,7 @@ UYATLI_SOZLAR = {
     "буйингни ами",
     "буйинди оми",
     "буйнами",
-    "буюнгдиоми",
+    "буюндиоми",
     "гандон",
     "гандонлар",
     "гандонмисан",
@@ -384,7 +405,11 @@ UYATLI_SOZLAR = {
     "идин наххуй",
     "идинаххуй",
     "идиннаххуй",
+    "исқиртсан",
+    "кот",
+    "котак",
     "котвача",
+    "котвачча",
     "котинга",
     "котинга сикай",
     "котинга ске",
@@ -404,10 +429,11 @@ UYATLI_SOZLAR = {
     "кўтинга",
     "кўтлар",
     "кўтмисан",
-    "кўтмисизлар",
-    "кўтмисизлар?",
     "кўтсан",
-    "ланатисан",,
+    "ланат",
+    "ланати",
+    "ланатилар",
+    "ланатисан",
     "наххуй",
     "огзинга скай",
     "огзинга скей",
@@ -419,14 +445,12 @@ UYATLI_SOZLAR = {
     "отни қотаги",
     "отти қотаги",
     "отти қўтағи",
-    "отти қотағи",
-    "отти котаги",
+    "отти кўтағи",
+    "отти кутағи",
+    "оттни қўтағи",
     "оғзинга скай",
     "оғзинга скей",
     "оғзингаскай",
-    "огзинга скай",
-    "огзинга скей",
-    "огзингаскай",
     "падарланат",
     "падарланатлар",
     "падарланатсан",
@@ -443,12 +467,14 @@ UYATLI_SOZLAR = {
     "сикаман",
     "сикасизми",
     "сикей",
+    "сикиш",
     "сикишаман",
     "сикишамиз",
     "сикишиш",
     "скай",
     "скаман",
     "скасизми",
+    "скей",
     "скейсикиш",
     "ский",
     "скишаман",
@@ -479,15 +505,13 @@ UYATLI_SOZLAR = {
     "хоромилар",
     "хуй",
     "хуйна",
+    "хурамилар",
     "чочақ",
     "чочоқ",
-    "чочак",
-    "чочок",
-    "чучақ",
-    "чучоқ",
     "ғар",
     "ғарлар",
     "ғармисан?",
+    "ғарсан",
     "қанжик",
     "қанжиқ",
     "қанжиқлар",
@@ -523,8 +547,7 @@ SUSPECT_DOMAINS = {"cattea", "gamee", "hamster", "notcoin", "tgme", "t.me/gamee"
 # ----------- DM (Postgres-backed) -----------
 SUB_USERS_FILE = "subs_users.json"  # fallback/migration manbasi
 
-OWNER_IDS = {165553982}
-
+# OWNER_IDS yuqorida ADMIN_IDS env orqali yuklanadi.
 def is_owner(update: Update) -> bool:
     u = update.effective_user
     return bool(u and u.id in OWNER_IDS)
@@ -846,7 +869,8 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "📘<b>ЁРДАМЧИ БУЙРУҚЛАР</b>\n"
         "🔹 <b>/tun</b> — Тун режими(шу дақиқадан гурухга ёзилган хабарлар автоматик ўчирилиб турилади).\n"
         "🔹 <b>/tunoff</b> — Тун режимини ўчириш.\n"
-        "🔹 <b>/ruxsat</b> — (Ответит) орқали имтиёз бериш.\n\n"
+        "🔹 <b>/ruxsat</b> — (Ответит) орқали имтиёз бериш.\n"
+        "🔹 <b>/ruxsatoff</b> — (Ответит) орқали имтиёзни олиб қўйиш.\n\n"
         "👥<b>ГУРУХГА МАЖБУР ОДАМ ҚЎШТИРИШ ВА КАНАЛГА МАЖБУР АЪЗО БЎЛДИРИШ</b>\n"
         "🔹 <b>/kanal @kanal1 @kanal2</b> — Мажбурий кўрсатилган каналга аъзо қилдириш.\n"
         "🔹 <b>/kanaloff</b> — Мажбурий каналга аъзони ўчириш.\n"
@@ -1405,6 +1429,101 @@ async def broadcastpost(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+
+# ---------------------- GROUP: Broadcast (owner only) ----------------------
+async def group_all_chat_ids() -> List[int]:
+    # Guruh chat_id lar ro'yxati (DB'dagi group_settings jadvalidan).
+    global DB_POOL
+    if not DB_POOL:
+        return []
+    try:
+        async with DB_POOL.acquire() as con:
+            rows = await con.fetch("SELECT chat_id FROM group_settings;")
+        return [int(r["chat_id"]) for r in rows]
+    except Exception as e:
+        log.warning(f"group_all_chat_ids(DB) xatolik: {e}")
+        return []
+
+async def broadcastgroup(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # (OWNER & DM) Matnni bot admin bo'lgan barcha guruhlarga yuborish.
+    if update.effective_chat.type != "private":
+        return await update.effective_message.reply_text("⛔ Bu buyruq faqat DM (shaxsiy chat)da ishlaydi.")
+    if not is_owner(update):
+        return await update.effective_message.reply_text("⛔ Bu buyruq faqat bot egasiga ruxsat etilgan.")
+    text = " ".join(context.args).strip()
+    if not text and update.effective_message.reply_to_message:
+        text = update.effective_message.reply_to_message.text_html or update.effective_message.reply_to_message.caption_html
+    if not text:
+        return await update.effective_message.reply_text("Foydalanish: /broadcastgroup Matn (yoki xabarga reply qilib yuboring)")
+
+    group_ids = await group_all_chat_ids()
+    if not group_ids:
+        return await update.effective_message.reply_text("⚠️ Guruhlar ro'yxati topilmadi (DB yo'q yoki hali guruh sozlamalari yaratilmagan).")
+
+    me = await context.bot.get_me()
+    total = len(group_ids); ok = 0; fail = 0; skipped = 0
+    await update.effective_message.reply_text(f"📣 Guruhlarga jo‘natish boshlandi. DB'da: {total} ta guruh (faqat bot admin bo‘lganlariga yuboriladi).")
+    for gid in list(group_ids):
+        try:
+            cm = await context.bot.get_chat_member(gid, me.id)
+            if cm.status not in ("administrator", "creator", "owner"):
+                skipped += 1
+                continue
+            await context.bot.send_message(gid, text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+            ok += 1
+            await asyncio.sleep(0.05)
+        except Exception as e:
+            fail += 1
+            # Agar bot guruhdan chiqarilgan bo'lsa — keyinchalik ro'yxatdan tozalab qo'yamiz (best-effort)
+            try:
+                if DB_POOL:
+                    low = str(e).lower()
+                    if "forbidden" in low or "kicked" in low or "chat not found" in low:
+                        async with DB_POOL.acquire() as con:
+                            await con.execute("DELETE FROM group_settings WHERE chat_id=$1;", gid)
+            except Exception:
+                pass
+    await update.effective_message.reply_text(f"✅ Yuborildi: {ok} ta guruh, ⏭️ o‘tkazildi (admin emas): {skipped} ta, ❌ xatolik: {fail} ta.")
+
+async def broadcastpostgroup(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # (OWNER & DM) Reply qilingan postni bot admin bo'lgan barcha guruhlarga yuborish.
+    if update.effective_chat.type != "private":
+        return await update.effective_message.reply_text("⛔ Bu buyruq faqat DM (shaxsiy chat)da ishlaydi.")
+    if not is_owner(update):
+        return await update.effective_message.reply_text("⛔ Bu buyruq faqat bot egasiga ruxsat etilgan.")
+    msg = update.effective_message.reply_to_message
+    if not msg:
+        return await update.effective_message.reply_text("Foydalanish: /broadcastpostgroup — yubormoqchi bo‘lgan xabarga reply qiling.")
+
+    group_ids = await group_all_chat_ids()
+    if not group_ids:
+        return await update.effective_message.reply_text("⚠️ Guruhlar ro'yxati topilmadi (DB yo'q yoki hali guruh sozlamalari yaratilmagan).")
+
+    me = await context.bot.get_me()
+    total = len(group_ids); ok = 0; fail = 0; skipped = 0
+    await update.effective_message.reply_text(f"📣 Guruhlarga post tarqatish boshlandi. DB'da: {total} ta guruh (faqat bot admin bo‘lganlariga yuboriladi).")
+    for gid in list(group_ids):
+        try:
+            cm = await context.bot.get_chat_member(gid, me.id)
+            if cm.status not in ("administrator", "creator", "owner"):
+                skipped += 1
+                continue
+            await context.bot.copy_message(chat_id=gid, from_chat_id=msg.chat_id, message_id=msg.message_id)
+            ok += 1
+            await asyncio.sleep(0.05)
+        except Exception as e:
+            fail += 1
+            try:
+                if DB_POOL:
+                    low = str(e).lower()
+                    if "forbidden" in low or "kicked" in low or "chat not found" in low:
+                        async with DB_POOL.acquire() as con:
+                            await con.execute("DELETE FROM group_settings WHERE chat_id=$1;", gid)
+            except Exception:
+                pass
+    await update.effective_message.reply_text(f"✅ Yuborildi: {ok} ta guruh, ⏭️ o‘tkazildi (admin emas): {skipped} ta, ❌ xatolik: {fail} ta.")
+
+
 # ====================== PER-GROUP SETTINGS (DB-backed) ======================
 # Muammo: TUN_REJIMI / KANAL_USERNAME / MAJBUR_LIMIT va hisoblar global edi.
 # Yechim: Har bir chat_id (guruh) uchun alohida saqlash (Railway Postgres).
@@ -1613,6 +1732,25 @@ async def grant_priv_db(chat_id: int, user_id: int):
     except Exception as e:
         log.warning(f"grant_priv_db xatolik: {e}")
 
+async def revoke_priv_db(chat_id: int, user_id: int):
+    # Cache'dan o'chiramiz
+    try:
+        if chat_id in _GROUP_PRIV_MEM:
+            _GROUP_PRIV_MEM[chat_id].discard(user_id)
+    except Exception:
+        pass
+
+    if not DB_POOL:
+        return
+    try:
+        async with DB_POOL.acquire() as con:
+            await con.execute(
+                "DELETE FROM group_privileges WHERE chat_id=$1 AND user_id=$2;",
+                chat_id, user_id
+            )
+    except Exception as e:
+        log.warning(f"revoke_priv_db xatolik: {e}")
+
 async def clear_privs_db(chat_id: int):
     if not DB_POOL:
         return
@@ -1714,23 +1852,29 @@ async def top_group_counts_db(chat_id: int, limit: int = 100):
         return []
 
 async def get_block_until_db(chat_id: int, user_id: int):
+    """
+    1) Avval in-memory BLOK_VAQTLARI'ni tekshiradi (DB ishlamay qolsa ham cooldown ishlashi uchun).
+    2) DB bo'lsa — DB'dan ham tekshiradi va eng kattasini qaytaradi.
+    """
+    mem_until = BLOK_VAQTLARI.get((chat_id, user_id))
     if not DB_POOL:
-        return BLOK_VAQTLARI.get((chat_id, user_id))
+        return mem_until
     try:
         async with DB_POOL.acquire() as con:
             row = await con.fetchrow(
                 "SELECT until_date FROM group_blocks WHERE chat_id=$1 AND user_id=$2;",
                 chat_id, user_id
             )
-        if not row:
-            return None
-        return row["until_date"]
+        db_until = row["until_date"] if row else None
+        if mem_until and db_until:
+            return mem_until if mem_until >= db_until else db_until
+        return db_until or mem_until
     except Exception:
-        return None
-
+        return mem_until
 async def set_block_until_db(chat_id: int, user_id: int, until_dt):
+    # Har doim in-memory'ni yangilab boramiz (DB xatosida ham cooldown ishlasin)
+    BLOK_VAQTLARI[(chat_id, user_id)] = until_dt
     if not DB_POOL:
-        BLOK_VAQTLARI[(chat_id, user_id)] = until_dt
         return
     try:
         async with DB_POOL.acquire() as con:
@@ -1746,10 +1890,10 @@ async def set_block_until_db(chat_id: int, user_id: int, until_dt):
             )
     except Exception:
         pass
-
 async def clear_block_db(chat_id: int, user_id: int):
+    # In-memory'dan har doim o'chiramiz
+    BLOK_VAQTLARI.pop((chat_id, user_id), None)
     if not DB_POOL:
-        BLOK_VAQTLARI.pop((chat_id, user_id), None)
         return
     try:
         async with DB_POOL.acquire() as con:
@@ -1759,7 +1903,6 @@ async def clear_block_db(chat_id: int, user_id: int):
             )
     except Exception:
         pass
-
 # --------- Override: kanal_tekshir per-group ----------
 async def kanal_tekshir(user_id: int, bot, kanal_username: str | None) -> bool:
     if not kanal_username:
@@ -1938,18 +2081,76 @@ async def ruxsat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.effective_message.reply_to_message:
         return await update.effective_message.reply_text("Iltimos, foydalanuvchi xabariga reply qiling.")
     chat_id = update.effective_chat.id
-    uid = update.effective_message.reply_to_message.from_user.id
+    target_user = update.effective_message.reply_to_message.from_user
+    uid = target_user.id
+
     await grant_priv_db(chat_id, uid)
-    await update.effective_message.reply_text(f"✅ <code>{uid}</code> foydalanuvchiga ruxsat berildi (shu guruhda).", parse_mode="HTML")
+
+    # Agar foydalanuvchi avval bloklangan bo'lsa — darhol blokdan chiqaramiz
+    try:
+        await clear_block_db(chat_id, uid)
+    except Exception:
+        pass
+    try:
+        await context.bot.restrict_chat_member(
+            chat_id=chat_id,
+            user_id=uid,
+            permissions=FULL_PERMS,
+        )
+    except Exception:
+        pass
+
+    label = html.escape(_user_label_from_user(target_user))
+    await update.effective_message.reply_text(
+        f"✅ {label} foydalanuvchiga ruxsat berildi (shu guruhda).",
+        parse_mode="HTML"
+    )
+
+async def ruxsatoff(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await is_admin(update):
+        return await update.effective_message.reply_text("⛔ Faqat adminlar.")
+    if not update.effective_message.reply_to_message:
+        return await update.effective_message.reply_text("Iltimos, foydalanuvchi xabariga reply qiling.")
+    chat_id = update.effective_chat.id
+    target_user = update.effective_message.reply_to_message.from_user
+    uid = target_user.id
+
+    await revoke_priv_db(chat_id, uid)
+
+    # Avvalgi blok/cooldown bo'lsa — tozalaymiz (oddiy holatga qaytsin)
+    try:
+        await clear_block_db(chat_id, uid)
+    except Exception:
+        pass
+    try:
+        await context.bot.restrict_chat_member(
+            chat_id=chat_id,
+            user_id=uid,
+            permissions=FULL_PERMS,
+        )
+    except Exception:
+        pass
+
+    label = html.escape(_user_label_from_user(target_user))
+    await update.effective_message.reply_text(
+        f"🚫 {label} foydalanuvchidan ruxsat olib qo‘yildi (shu guruhda).",
+        parse_mode="HTML"
+    )
+
 
 # --------- Override stats commands to be per-group ----------
 def _user_label_from_user(u) -> str:
-    if getattr(u, "username", None):
-        return "@" + u.username
+    # Display name for messages/mentions: prefer full name, then @username, then ID
     name = (getattr(u, "full_name", None) or "").strip()
     if not name:
-        name = (getattr(u, "first_name", None) or "").strip()
-    return name or str(u.id)
+        fn = (getattr(u, "first_name", None) or "").strip()
+        ln = (getattr(u, "last_name", None) or "").strip()
+        name = (fn + (" " + ln if ln else "")).strip()
+    if name:
+        return name
+    if getattr(u, "username", None):
+        return "@" + u.username
+    return str(getattr(u, "id", ""))
 
 def _mention_userid_html(user_id: int, label: str) -> str:
     return f'<a href="tg://user?id={user_id}">{html.escape(str(label))}</a>'
@@ -2156,7 +2357,20 @@ async def on_grant_priv(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     except Exception:
         pass
-    await q.edit_message_text(f"🎟 <code>{target_id}</code> foydalanuvchiga imtiyoz berildi. Endi u yozishi mumkin (shu guruhda).", parse_mode="HTML")
+    # Target foydalanuvchi ismini olish (mavjud bo'lsa)
+    label = str(target_id)
+    try:
+        cm = await context.bot.get_chat_member(chat.id, target_id)
+        tu = getattr(cm, "user", None)
+        if tu is not None:
+            label = html.escape(_user_label_from_user(tu))
+    except Exception:
+        label = str(target_id)
+
+    await q.edit_message_text(
+        f"🎟 {label} foydalanuvchiga imtiyoz berildi. Endi u yozishi mumkin (shu guruhda).",
+        parse_mode="HTML"
+    )
 
 # --------- Override Filters: reklama_va_soz_filtri / majbur_filter ----------
 async def reklama_va_soz_filtri(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2179,10 +2393,13 @@ async def reklama_va_soz_filtri(update: Update, context: ContextTypes.DEFAULT_TY
     if msg.from_user.id in WHITELIST or (msg.from_user.username and msg.from_user.username in WHITELIST):
         return
 
+    uid = msg.from_user.id
+    has_priv = await group_has_priv(chat_id, uid)
+
     settings = await get_group_settings(chat_id)
 
-    # Tun rejimi (shu guruh uchun)
-    if settings.get("tun"):
+    # Tun rejimi (shu guruh uchun) — imtiyozli foydalanuvchiga ta’sir qilmaydi
+    if settings.get("tun") and not has_priv:
         try:
             await msg.delete()
         except Exception:
@@ -2193,20 +2410,24 @@ async def reklama_va_soz_filtri(update: Update, context: ContextTypes.DEFAULT_TY
     kanal_list = _parse_kanal_usernames(kanal_raw)
 
     # Cooldown: foydalanuvchi 1 daqiqalik blokda bo'lsa — xabarini o'chirib, ogohlantirmaymiz
-    uid = msg.from_user.id
     now = datetime.now(timezone.utc)
     until_old = await get_block_until_db(chat_id, uid)
-    if until_old and now < until_old:
+    if until_old and now < until_old and not has_priv:
         try:
             await msg.delete()
         except Exception:
             pass
         return
+    if until_old and now < until_old and has_priv:
+        try:
+            await clear_block_db(chat_id, uid)
+        except Exception:
+            pass
     if until_old and now >= until_old:
         await clear_block_db(chat_id, uid)
 
     # Kanal a'zoligi (shu guruh uchun) - ko'p kanalli
-    if kanal_list:
+    if kanal_list and not has_priv:
         ok_all, _missing = await _check_all_channels(uid, context.bot, kanal_list)
         if not ok_all:
             try:
@@ -2226,16 +2447,17 @@ async def reklama_va_soz_filtri(update: Update, context: ContextTypes.DEFAULT_TY
                 )
             except Exception as e:
                 log.warning(f"Restrict failed: {e}")
-
             kb = [
                 [InlineKeyboardButton("✅ Men a’zo bo‘ldim", callback_data=f"kanal_azo:{uid}")],
+                [InlineKeyboardButton("🎟 Imtiyoz berish", callback_data=f"grant:{uid}")],
                 [InlineKeyboardButton("➕ Guruhga qo‘shish", url=admin_add_link(context.bot.username))]
             ]
-            user_label = ("@" + msg.from_user.username) if getattr(msg.from_user, "username", None) else (msg.from_user.first_name or "Foydalanuvchi")
-            chan_lines = "\n".join([f"{i}) {ch}" for i, ch in enumerate(kanal_list, start=1)])
-            warn_text = f"⚠️ {user_label} guruhda yozish uchun shu kanallarga a'zo bo'ling:\n{chan_lines}"
-
-            # Oldingi ogohlantirishni o'chirish (shu foydalanuvchi uchun)
+            mention = _mention_user_html(msg.from_user)
+            chan_lines = "\n".join([f"{i}) {html.escape(ch)}" for i, ch in enumerate(kanal_list, start=1)])
+            warn_text = (
+                f"⚠️ {mention} guruhda yozish uchun shu kanallarga a'zo bo'ling:\n{chan_lines}\n\n"
+                "⏳ 1 daqiqaga bloklandi"
+            )# Oldingi ogohlantirishni o'chirish (shu foydalanuvchi uchun)
             key = (chat_id, uid)
             prev_mid = KANAL_WARN_MSG_IDS.get(key)
             if prev_mid:
@@ -2248,6 +2470,8 @@ async def reklama_va_soz_filtri(update: Update, context: ContextTypes.DEFAULT_TY
                 chat_id=chat_id,
                 text=warn_text,
                 reply_markup=InlineKeyboardMarkup(kb),
+                parse_mode="HTML",
+                disable_web_page_preview=True
             )
             KANAL_WARN_MSG_IDS[key] = warn_msg.message_id
             return
@@ -2375,6 +2599,14 @@ async def majbur_filter(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if limit <= 0:
         return
 
+    # Imtiyoz bo'lsa — majburiy talab/cooldown ishlamaydi
+    if await group_has_priv(chat_id, uid):
+        try:
+            await clear_block_db(chat_id, uid)
+        except Exception:
+            pass
+        return
+
     # Agar foydalanuvchi hanuz blokda bo'lsa — xabarini o'chirib, hech narsa yubormaymiz
     now = datetime.now(timezone.utc)
     until_old = await get_block_until_db(chat_id, uid)
@@ -2386,9 +2618,6 @@ async def majbur_filter(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if until_old and now >= until_old:
         await clear_block_db(chat_id, uid)
-
-    if await group_has_priv(chat_id, uid):
-        return
 
     cnt = await get_user_count_db(chat_id, uid)
     if cnt >= limit:
@@ -2431,8 +2660,9 @@ async def majbur_filter(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     warn_msg = await context.bot.send_message(
         chat_id=chat_id,
-        text=f"⚠️ Guruhda yozish uchun {limit} ta odam qo‘shishingiz kerak! Qolgan: {qoldi} ta.",
-        reply_markup=InlineKeyboardMarkup(kb)
+        text=f"⚠️ {_mention_user_html(msg.from_user)} guruhda yozish uchun {limit} ta odam qo‘shishingiz kerak! Qolgan: {qoldi} ta.",
+        reply_markup=InlineKeyboardMarkup(kb),
+        parse_mode="HTML"
     )
     MAJBUR_WARN_MSG_IDS[key] = warn_msg.message_id
 
@@ -2493,12 +2723,15 @@ async def set_commands(app):
             BotCommand("cleangroup", "Hamma hisobini 0 qilish"),
             BotCommand("cleanuser", "(reply) foydalanuvchi hisobini 0 qilish"),
             BotCommand("ruxsat", "(reply) imtiyoz berish"),
+            BotCommand("ruxsatoff", "(reply) imtiyozni olib qo‘yish"),
             BotCommand("kanal", "Majburiy kanalni sozlash"),
             BotCommand("kanaloff", "Majburiy kanalni o‘chirish"),
             BotCommand("tun", "Tun rejimini yoqish"),
             BotCommand("tunoff", "Tun rejimini o‘chirish"),
             BotCommand("broadcast", "Barcha DM foydalanuvchilarga matn yuborish (owner)"),
             BotCommand("broadcastpost", "Barcha DM foydalanuvchilarga post-forward (owner)"),
+            BotCommand("broadcastgroup", "Bot admin bo‘lgan guruhlarga matn yuborish (owner)"),
+            BotCommand("broadcastpostgroup", "Bot admin bo‘lgan guruhlarga post-forward (owner)"),
         ],
         scope=BotCommandScopeAllPrivateChats()
     )
@@ -2526,6 +2759,7 @@ def main():
     app.add_handler(CommandHandler("tun", tun))
     app.add_handler(CommandHandler("tunoff", tunoff))
     app.add_handler(CommandHandler("ruxsat", ruxsat))
+    app.add_handler(CommandHandler("ruxsatoff", ruxsatoff))
     app.add_handler(CommandHandler("kanal", kanal))
     app.add_handler(CommandHandler("kanaloff", kanaloff))
     app.add_handler(CommandHandler("majbur", majbur))
@@ -2539,6 +2773,10 @@ def main():
     # DM broadcast (owner only)
     app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CommandHandler("broadcastpost", broadcastpost))
+
+    # GROUP broadcast (owner only)
+    app.add_handler(CommandHandler("broadcastgroup", broadcastgroup))
+    app.add_handler(CommandHandler("broadcastpostgroup", broadcastpostgroup))
 
     # Callbacks
     app.add_handler(CallbackQueryHandler(on_set_limit, pattern=r"^set_limit:"))
